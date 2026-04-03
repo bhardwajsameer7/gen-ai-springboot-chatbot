@@ -1,0 +1,6 @@
+server:
+  port: 8080
+openrouter:
+  base-url: https://openrouter.ai/api/v1
+  api-key: XXX
+  model: nvidia/nemotron-3-nano-30b-a3b:free

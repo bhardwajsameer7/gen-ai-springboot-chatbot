@@ -6,6 +6,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,33 +22,26 @@ public class ChatService {
 
     private final OpenAiChatModel openAiChatModel;
 
-    // Store memory per user
-    private final Map<String, MessageWindowChatMemory> userMemories = new ConcurrentHashMap<>();
+    // Store Assistant per user (important for memory isolation)
+    private final Map<String, Assistant> assistants = new ConcurrentHashMap<>();
 
     @Autowired
     public ChatService(@Value("${openrouter.base-url}") String url, @Value("${openrouter.api-key}") String key, @Value("${openrouter.model}") String model){
         this.openAiChatModel = OpenAiChatModel.builder().apiKey(key).baseUrl(url).modelName(model).build();
     }
 
-  
     public String chat(String userId,String message) {
 
-        //Create in-memory to store both AI and User conversion
-        MessageWindowChatMemory memory = userMemories.computeIfAbsent(userId, id -> MessageWindowChatMemory.withMaxMessages(10));
+        //Create Assistant per user (with memory)
+        Assistant assistant = assistants.computeIfAbsent(userId, id ->
+                AiServices.builder(Assistant.class)
+                        .chatLanguageModel(openAiChatModel)
+                        .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
+                        .build()
+        );
 
-        //Add user message
-        memory.add(UserMessage.from(message));
-
-        //Send FULL conversation to model
-        List<ChatMessage> messages = memory.messages();
-
-        //Get AI response
-        AiMessage aiMessage = openAiChatModel.generate(messages).content();
-
-        //Store AI response
-        memory.add(aiMessage);
-
-        return aiMessage.text();
+        //Call assistant (system prompt + memory automatically handled)
+        return assistant.chat(message);
     }
 
 }

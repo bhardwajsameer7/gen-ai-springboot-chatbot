@@ -6,6 +6,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,15 @@ import java.util.stream.Collectors;
 public class ChatService {
 
     private final OpenAiChatModel openAiChatModel;
+    private final ContentRetriever embeddingStoreContentRetriever;
 
     // Store Assistant per user (important for memory isolation)
     private final Map<String, Assistant> assistants = new ConcurrentHashMap<>();
 
     @Autowired
-    public ChatService(OpenAiChatModel openAiChatModel){
+    public ChatService(OpenAiChatModel openAiChatModel, ContentRetriever embeddingStoreContentRetriever){
         this.openAiChatModel = openAiChatModel;
+        this.embeddingStoreContentRetriever = embeddingStoreContentRetriever;
     }
 
     public String chat(String userId,String message) {
@@ -36,7 +39,7 @@ public class ChatService {
         Assistant assistant = assistants.computeIfAbsent(userId, id ->
                 AiServices.builder(Assistant.class)
                         .chatLanguageModel(openAiChatModel)
-                        .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
+                        .chatMemory(MessageWindowChatMemory.withMaxMessages(10)).contentRetriever(embeddingStoreContentRetriever)
                         .build()
         );
 

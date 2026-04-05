@@ -26,8 +26,8 @@ public class ChatService {
     private final Map<String, Assistant> assistants = new ConcurrentHashMap<>();
 
     @Autowired
-    public ChatService(@Value("${openrouter.base-url}") String url, @Value("${openrouter.api-key}") String key, @Value("${openrouter.model}") String model){
-        this.openAiChatModel = OpenAiChatModel.builder().apiKey(key).baseUrl(url).modelName(model).build();
+    public ChatService(OpenAiChatModel openAiChatModel){
+        this.openAiChatModel = openAiChatModel;
     }
 
     public String chat(String userId,String message) {

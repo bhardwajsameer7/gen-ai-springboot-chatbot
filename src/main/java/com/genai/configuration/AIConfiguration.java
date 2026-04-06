@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
@@ -26,7 +28,7 @@ public class AIConfiguration {
     }
 
     @Bean
-    public EmbeddingStoreContentRetriever embeddingStoreContentRetriever(@Value("${openrouter.api-key}") String apiKey, @Value("${openrouter.base-url}") String baseUrl, @Value("${openrouter.embedding-model}") String model) throws Exception {
+    public EmbeddingStoreContentRetriever embeddingStoreContentRetriever() throws Exception {
 
         //Read JSON
         ObjectMapper mapper = new ObjectMapper();
@@ -45,11 +47,7 @@ public class AIConfiguration {
         List<TextSegment> segments = DocumentSplitters.recursive(300, 50).splitAll(documents);
 
         //Embedding model
-        OpenAiEmbeddingModel embeddingModel = OpenAiEmbeddingModel.builder()
-                .apiKey(apiKey)
-                .baseUrl(baseUrl)
-                .modelName(model)
-                .build();
+        EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
 
         //Store
         InMemoryEmbeddingStore<TextSegment> store = new InMemoryEmbeddingStore<>();

@@ -4,4 +4,4 @@ openrouter:
   base-url: https://openrouter.ai/api/v1
   api-key: 
   model: nvidia/nemotron-3-nano-30b-a3b:free
-  embedding-model: nvidia/llama-nemotron-embed-vl-1b-v2
+  #embedding-model: nvidia/llama-nemotron-embed-vl-1b-v2
